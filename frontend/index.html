@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V2Ray Manager Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>V2Ray Manager Dashboard</h1>
+        </header>
+
+        <section class="stats-section">
+            <h2>System Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>CPU Usage</h3>
+                    <p id="cpu-usage">Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Memory Usage</h3>
+                    <p id="memory-usage">Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Disk Usage</h3>
+                    <p id="disk-usage">Loading...</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="users-section">
+            <h2>User Management</h2>
+            
+            <div class="add-user-form">
+                <h3>Add New User</h3>
+                <form id="add-user-form">
+                    <input type="text" id="user-name" placeholder="User Name" required>
+                    <input type="number" id="alter-id" placeholder="Alter ID" value="64">
+                    <button type="submit">Add User</button>
+                </form>
+            </div>
+
+            <div class="users-list">
+                <h3>Active Users</h3>
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>UUID</th>
+                            <th>Alter ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr><td colspan="4">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div id="qr-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>QR Code</h2>
+                <img id="qr-image" src="" alt="QR Code">
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
