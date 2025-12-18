@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  v2ray-manager:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ${V2RAY_CONFIG_PATH:-./config.json}:/etc/v2ray/config.json
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - V2RAY_CONFIG_PATH=/etc/v2ray/config.json
+      - DOMAIN=${DOMAIN:-management.hamnaghsheh.ir}
+      - PORT=${PORT:-8443}
+    restart: unless-stopped
+    networks:
+      - v2ray-network
+
+networks:
+  v2ray-network:
+    driver: bridge
