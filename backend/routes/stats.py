@@ -8,7 +8,7 @@ router = APIRouter()
 async def get_system_stats():
     """Get system statistics"""
     try:
-        cpu_percent = psutil.cpu_percent(interval=1)
+        cpu_percent = psutil.cpu_percent(interval=None)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         
