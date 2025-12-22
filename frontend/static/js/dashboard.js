@@ -1,5 +1,14 @@
 const API_BASE = '/api';
 
+// Format bytes to human readable
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+}
+
 // Fetch and display system stats
 async function updateSystemStats() {
     try {
@@ -14,7 +23,7 @@ async function updateSystemStats() {
     }
 }
 
-// Fetch and display users
+// Fetch and display users with traffic stats
 async function loadUsers() {
     try {
         const response = await fetch(`${API_BASE}/users`);
@@ -23,24 +32,34 @@ async function loadUsers() {
         const tbody = document.getElementById('users-tbody');
         
         if (users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4">No users found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6">No users found</td></tr>';
             return;
         }
         
-        tbody.innerHTML = users.map(user => `
+        tbody.innerHTML = users.map(user => {
+            const trafficPercent = user.traffic_limit > 0 
+                ? ((user.traffic_used / user.traffic_limit) * 100).toFixed(1)
+                : 0;
+            
+            const trafficWarning = trafficPercent > 80 ? 'style="color: #dc3545; font-weight: bold;"' : '';
+            
+            return `
             <tr>
                 <td>${user.name}</td>
-                <td>${user.id}</td>
-                <td>${user.alter_id}</td>
+                <td><code>${user.id}</code></td>
+                <td>${formatBytes(user.uplink)}</td>
+                <td>${formatBytes(user.downlink)}</td>
+                <td ${trafficWarning}>${formatBytes(user.traffic_used)}</td>
                 <td>
-                    <button class="action-btn qr-btn" onclick="showQRCode('${user.id}')">QR Code</button>
-                    <button class="action-btn delete-btn" onclick="deleteUser('${user.id}')">Delete</button>
+                    <button class="action-btn qr-btn" onclick="showQRCode('${user.id}')" title="Generate QR Code">📱 QR</button>
+                    <button class="action-btn reset-btn" onclick="resetStats('${user.id}')" title="Reset Traffic Stats">🔄 Reset</button>
+                    <button class="action-btn delete-btn" onclick="deleteUser('${user.id}')" title="Delete User">🗑️ Delete</button>
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
     } catch (error) {
         console.error('Error loading users:', error);
-        document.getElementById('users-tbody').innerHTML = '<tr><td colspan="4">Error loading users</td></tr>';
+        document.getElementById('users-tbody').innerHTML = '<tr><td colspan="6">Error loading users</td></tr>';
     }
 }
 
@@ -50,6 +69,7 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
     
     const name = document.getElementById('user-name').value;
     const alterId = parseInt(document.getElementById('alter-id').value);
+    const trafficLimit = parseInt(document.getElementById('traffic-limit').value);
     
     try {
         const response = await fetch(`${API_BASE}/users`, {
@@ -57,27 +77,32 @@ document.getElementById('add-user-form').addEventListener('submit', async (e) =>
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ name, alter_id: alterId }),
+            body: JSON.stringify({ 
+                name, 
+                alter_id: alterId,
+                traffic_limit: trafficLimit 
+            }),
         });
         
         if (response.ok) {
-            alert('User added successfully!');
+            alert('✅ User added successfully! (No service interruption)');
             document.getElementById('add-user-form').reset();
             document.getElementById('alter-id').value = '64';
+            document.getElementById('traffic-limit').value = '0';
             loadUsers();
         } else {
             const error = await response.json();
-            alert(`Error: ${error.detail}`);
+            alert(`❌ Error: ${error.detail}`);
         }
     } catch (error) {
         console.error('Error adding user:', error);
-        alert('Failed to add user');
+        alert('❌ Failed to add user');
     }
 });
 
 // Delete user
 async function deleteUser(userId) {
-    if (!confirm('Are you sure you want to delete this user?')) {
+    if (!confirm('⚠️ Are you sure you want to delete this user? This action cannot be undone.')) {
         return;
     }
     
@@ -87,15 +112,39 @@ async function deleteUser(userId) {
         });
         
         if (response.ok) {
-            alert('User deleted successfully!');
+            alert('✅ User deleted successfully! (No service interruption)');
             loadUsers();
         } else {
             const error = await response.json();
-            alert(`Error: ${error.detail}`);
+            alert(`❌ Error: ${error.detail}`);
         }
     } catch (error) {
         console.error('Error deleting user:', error);
-        alert('Failed to delete user');
+        alert('❌ Failed to delete user');
+    }
+}
+
+// Reset traffic stats
+async function resetStats(userId) {
+    if (!confirm('Reset traffic statistics for this user?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/users/${userId}/reset-stats`, {
+            method: 'POST',
+        });
+        
+        if (response.ok) {
+            alert('✅ Traffic stats reset successfully!');
+            loadUsers();
+        } else {
+            const error = await response.json();
+            alert(`❌ Error: ${error.detail}`);
+        }
+    } catch (error) {
+        console.error('Error resetting stats:', error);
+        alert('❌ Failed to reset stats');
     }
 }
 
@@ -134,3 +183,4 @@ loadUsers();
 
 // Refresh stats every 5 seconds
 setInterval(updateSystemStats, 5000);
+setInterval(loadUsers, 5000);  // Also refresh user traffic stats
