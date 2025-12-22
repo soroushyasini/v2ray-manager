@@ -68,6 +68,9 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 - `V2RAY_CONFIG_PATH`: Path to V2Ray configuration file (default: `/etc/v2ray/config.json`)
 - `DOMAIN`: Your V2Ray server domain (default: `management.hamnaghsheh.ir`)
 - `PORT`: Your V2Ray server port (default: `8443`)
+- `V2RAY_CONTAINER`: Docker container name for V2Ray (default: `v2ray`)
+- `V2RAY_API_HOST`: V2Ray API host address (default: `127.0.0.1`)
+- `V2RAY_API_PORT`: V2Ray API port (default: `10085`)
 
 ## V2Ray API Configuration
 

@@ -3,12 +3,17 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uuid
 from datetime import datetime
+import logging
 
 from utils.v2ray_config import read_config, write_config, add_user, remove_user
 from utils.qrcode_gen import generate_qrcode
 from utils.v2ray_api import get_user_stats, add_user_via_api, remove_user_via_api, reset_user_stats
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+# Constants
+GB_TO_BYTES = 1024 * 1024 * 1024
 
 class User(BaseModel):
     id: str
@@ -75,7 +80,7 @@ async def create_user(user: UserCreate):
         api_success = add_user_via_api(new_uuid, user.name, user.alter_id)
         
         if not api_success:
-            print("Warning: API add failed, user added to config only. Restart V2Ray to activate.")
+            logger.warning("API add failed, user added to config only. Restart V2Ray to activate.")
         
         return {
             "id": new_uuid,
@@ -83,7 +88,7 @@ async def create_user(user: UserCreate):
             "alter_id": user.alter_id,
             "created_at": datetime.now().isoformat(),
             "traffic_used": 0,
-            "traffic_limit": user.traffic_limit * 1024 * 1024 * 1024,  # GB to bytes
+            "traffic_limit": user.traffic_limit * GB_TO_BYTES,
             "uplink": 0,
             "downlink": 0,
             "enabled": True
@@ -116,7 +121,7 @@ async def delete_user(user_id: str):
         if user_email:
             api_success = remove_user_via_api(user_email)
             if not api_success:
-                print("Warning: API remove failed, user removed from config only.")
+                logger.warning("API remove failed, user removed from config only.")
         
         return {"message": "User deleted successfully"}
     except Exception as e:

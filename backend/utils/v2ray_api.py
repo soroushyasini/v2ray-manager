@@ -1,13 +1,23 @@
 import subprocess
 import json
+import os
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# Configuration from environment variables
+V2RAY_CONTAINER = os.getenv("V2RAY_CONTAINER", "v2ray")
+V2RAY_API_HOST = os.getenv("V2RAY_API_HOST", "127.0.0.1")
+V2RAY_API_PORT = os.getenv("V2RAY_API_PORT", "10085")
 
 def add_user_via_api(user_id, email, alter_id=64, inbound_tag="proxy"):
     """Add user via V2Ray API without restart"""
     try:
         cmd = [
-            "docker", "exec", "v2ray",
+            "docker", "exec", V2RAY_CONTAINER,
             "/usr/bin/v2ray", "api", "adi", "inbound.user",
-            "--server=127.0.0.1:10085",
+            f"--server={V2RAY_API_HOST}:{V2RAY_API_PORT}",
             f"--tag={inbound_tag}",
             f"--email={email}",
             f"--uuid={user_id}",
@@ -16,23 +26,23 @@ def add_user_via_api(user_id, email, alter_id=64, inbound_tag="proxy"):
         result = subprocess.run(cmd, capture_output=True, text=True)
         return result.returncode == 0
     except Exception as e:
-        print(f"Error adding user via API: {e}")
+        logger.error(f"Error adding user via API: {e}")
         return False
 
 def remove_user_via_api(email, inbound_tag="proxy"):
     """Remove user via V2Ray API without restart"""
     try:
         cmd = [
-            "docker", "exec", "v2ray",
+            "docker", "exec", V2RAY_CONTAINER,
             "/usr/bin/v2ray", "api", "rmi", "inbound.user",
-            "--server=127.0.0.1:10085",
+            f"--server={V2RAY_API_HOST}:{V2RAY_API_PORT}",
             f"--tag={inbound_tag}",
             f"--email={email}"
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         return result.returncode == 0
     except Exception as e:
-        print(f"Error removing user via API: {e}")
+        logger.error(f"Error removing user via API: {e}")
         return False
 
 def get_user_stats(email):
@@ -40,18 +50,18 @@ def get_user_stats(email):
     try:
         # Get uplink
         cmd_up = [
-            "docker", "exec", "v2ray",
+            "docker", "exec", V2RAY_CONTAINER,
             "/usr/bin/v2ray", "api", "statsquery",
-            "--server=127.0.0.1:10085",
+            f"--server={V2RAY_API_HOST}:{V2RAY_API_PORT}",
             f"--pattern=user>>>{email}>>>traffic>>>uplink"
         ]
         result_up = subprocess.run(cmd_up, capture_output=True, text=True)
         
         # Get downlink
         cmd_down = [
-            "docker", "exec", "v2ray",
+            "docker", "exec", V2RAY_CONTAINER,
             "/usr/bin/v2ray", "api", "statsquery",
-            "--server=127.0.0.1:10085",
+            f"--server={V2RAY_API_HOST}:{V2RAY_API_PORT}",
             f"--pattern=user>>>{email}>>>traffic>>>downlink"
         ]
         result_down = subprocess.run(cmd_down, capture_output=True, text=True)
@@ -65,7 +75,7 @@ def get_user_stats(email):
             "total": uplink + downlink
         }
     except Exception as e:
-        print(f"Error getting stats: {e}")
+        logger.error(f"Error getting stats: {e}")
         return {"uplink": 0, "downlink": 0, "total": 0}
 
 def parse_stats(output):
@@ -82,9 +92,9 @@ def reset_user_stats(email):
     """Reset traffic stats for a user"""
     try:
         cmd = [
-            "docker", "exec", "v2ray",
+            "docker", "exec", V2RAY_CONTAINER,
             "/usr/bin/v2ray", "api", "stats",
-            "--server=127.0.0.1:10085",
+            f"--server={V2RAY_API_HOST}:{V2RAY_API_PORT}",
             "--reset",
             f"user>>>{email}>>>traffic>>>uplink",
             f"user>>>{email}>>>traffic>>>downlink"
@@ -92,5 +102,5 @@ def reset_user_stats(email):
         result = subprocess.run(cmd, capture_output=True, text=True)
         return result.returncode == 0
     except Exception as e:
-        print(f"Error resetting stats: {e}")
+        logger.error(f"Error resetting stats: {e}")
         return False
