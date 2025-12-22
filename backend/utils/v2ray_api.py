@@ -84,7 +84,7 @@ def parse_stats(output):
         for line in output.split('\n'):
             if 'value:' in line:
                 return int(line.split('value:')[1].strip())
-    except:
+    except Exception:
         pass
     return 0
 
