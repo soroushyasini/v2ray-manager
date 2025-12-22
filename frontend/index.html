@@ -9,7 +9,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>V2Ray Manager Dashboard</h1>
+            <h1>🚀 V2Ray Manager Dashboard</h1>
+            <p class="subtitle">Zero-downtime user management with real-time traffic monitoring</p>
         </header>
 
         <section class="stats-section">
@@ -36,10 +37,12 @@
             <div class="add-user-form">
                 <h3>Add New User</h3>
                 <form id="add-user-form">
-                    <input type="text" id="user-name" placeholder="User Name" required>
-                    <input type="number" id="alter-id" placeholder="Alter ID" value="64">
+                    <input type="text" id="user-name" placeholder="User Name/Email" required>
+                    <input type="number" id="alter-id" placeholder="Alter ID" value="64" min="0" max="65535">
+                    <input type="number" id="traffic-limit" placeholder="Traffic Limit (GB, 0=unlimited)" value="0" min="0">
                     <button type="submit">Add User</button>
                 </form>
+                <p class="info-text">💡 Users are added instantly without disconnecting existing connections</p>
             </div>
 
             <div class="users-list">
@@ -49,12 +52,14 @@
                         <tr>
                             <th>Name</th>
                             <th>UUID</th>
-                            <th>Alter ID</th>
+                            <th>Upload ⬆️</th>
+                            <th>Download ⬇️</th>
+                            <th>Total Traffic</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="users-tbody">
-                        <tr><td colspan="4">Loading...</td></tr>
+                        <tr><td colspan="6">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -63,8 +68,9 @@
         <div id="qr-modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <h2>QR Code</h2>
+                <h2>QR Code Configuration</h2>
                 <img id="qr-image" src="" alt="QR Code">
+                <p class="info-text">Scan with V2Ray client app</p>
             </div>
         </div>
     </div>
