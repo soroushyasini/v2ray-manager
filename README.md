@@ -68,6 +68,69 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 - `V2RAY_CONFIG_PATH`: Path to V2Ray configuration file (default: `/etc/v2ray/config.json`)
 - `DOMAIN`: Your V2Ray server domain (default: `management.hamnaghsheh.ir`)
 - `PORT`: Your V2Ray server port (default: `8443`)
+- `V2RAY_CONTAINER`: Docker container name for V2Ray (default: `v2ray`)
+- `V2RAY_API_HOST`: V2Ray API host address (default: `127.0.0.1`)
+- `V2RAY_API_PORT`: V2Ray API port (default: `10085`)
+
+## V2Ray API Configuration
+
+For zero-downtime user management and traffic monitoring, you need to enable V2Ray API.
+
+### Add to your V2Ray config.json:
+
+```json
+{
+  "api": {
+    "tag": "api",
+    "services": [
+      "HandlerService",
+      "StatsService"
+    ]
+  },
+  "stats": {},
+  "policy": {
+    "levels": {
+      "0": {
+        "statsUserUplink": true,
+        "statsUserDownlink": true
+      }
+    },
+    "system": {
+      "statsInboundUplink": true,
+      "statsInboundDownlink": true
+    }
+  },
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 10085,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      },
+      "tag": "api"
+    },
+    ... your existing inbounds ...
+  ],
+  "routing": {
+    "rules": [
+      {
+        "inboundTag": ["api"],
+        "outboundTag": "api",
+        "type": "field"
+      },
+      ... your existing rules ...
+    ]
+  }
+}
+```
+
+After updating the config, restart V2Ray once:
+```bash
+docker restart v2ray
+```
+
+After this initial setup, all future user additions/removals will happen without restart!
 
 ## API Endpoints
 
